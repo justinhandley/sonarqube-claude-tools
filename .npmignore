@@ -1,0 +1,33 @@
+# Development files
+*.log
+.DS_Store
+.env
+.env.*
+
+# Test files
+test/
+tests/
+*.test.js
+*.test.ts
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Build artifacts (if any)
+build/
+dist/
+
+# Version control
+.git/
+.gitignore
+
+# OS generated files
+Thumbs.db
