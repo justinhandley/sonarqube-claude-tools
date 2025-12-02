@@ -1,6 +1,6 @@
 {
   "name": "sonarqube-claude-tools",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "Claude Code slash commands for automated SonarQube analysis and issue fixing",
   "main": "index.js",
   "bin": {
