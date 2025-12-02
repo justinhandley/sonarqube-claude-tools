@@ -180,22 +180,33 @@ class SonarFixCommand {
         stderr = execError.stderr || ''
       }
 
-      // Parse the output to get issue count from markdown format - try multiple patterns
-      let issueMatch = stdout.match(/Issues to Fix \((\d+) total\)/)
-      if (!issueMatch) {
-        issueMatch = stdout.match(/Issues Found \((\d+)\)/)
-      }
-      if (!issueMatch) {
-        issueMatch = stdout.match(/(\d+) total/)
-      }
+      // Read the markdown file directly to get accurate issue count
+      const markdownFile = `.sonar-issues-${this.prNumber}.md`
+      let issueCount = 0
       
-      const issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
-
-      // Always log the issue count prominently
-      console.log(`\n🔍 SONAR ANALYSIS COMPLETE`)
-      console.log(`   Issues detected: ${issueCount}`)
-      console.log(`   Quality gate: ${stdout.includes('❌') ? 'FAILING' : 'PASSING'}`)
-      console.log(`   Output length: ${stdout.length} chars\n`)
+      if (fs.existsSync(markdownFile)) {
+        const fileContent = fs.readFileSync(markdownFile, 'utf8')
+        const issueMatch = fileContent.match(/Issues to Fix \((\d+) total\)/)
+        issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
+        console.log(`\n🔍 SONAR ANALYSIS COMPLETE`)
+        console.log(`   Issues detected from file: ${issueCount}`)
+        console.log(`   Markdown file size: ${fileContent.length} chars`)
+        console.log(`   Stdout length: ${stdout.length} chars\n`)
+      } else {
+        // Fallback to parsing stdout if no file exists
+        let issueMatch = stdout.match(/Issues to Fix \((\d+) total\)/)
+        if (!issueMatch) {
+          issueMatch = stdout.match(/Issues Found \((\d+)\)/)
+        }
+        if (!issueMatch) {
+          issueMatch = stdout.match(/(\d+) total/)
+        }
+        issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
+        console.log(`\n🔍 SONAR ANALYSIS COMPLETE`)
+        console.log(`   Issues detected from stdout: ${issueCount}`)
+        console.log(`   No markdown file found`)
+        console.log(`   Stdout length: ${stdout.length} chars\n`)
+      }
 
       if (stderr && !stderr.includes('Quality gate failed')) {
         this.log(`Warning: ${stderr}`, 'warn')
