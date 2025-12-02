@@ -125,6 +125,17 @@ class SonarQubeClient {
       
       const result = await this.makeRequest(url);
       
+      // Debug logging for PR issue detection
+      if (this.pullRequest) {
+        console.log(`\n🔍 DEBUG: SonarCloud API Response for PR #${this.pullRequest}:`);
+        console.log(`   URL: ${url}`);
+        console.log(`   Total issues returned: ${result.total || 0}`);
+        console.log(`   Issues array length: ${result.issues ? result.issues.length : 0}`);
+        if (result.issues && result.issues.length > 0) {
+          console.log(`   First issue: ${result.issues[0].message} (${result.issues[0].severity})`);
+        }
+      }
+      
       // If we hit the page size limit, fetch remaining pages
       if (result.total > pageSize) {
         const totalPages = Math.ceil(result.total / pageSize);
