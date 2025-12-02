@@ -193,6 +193,13 @@ class SonarFixCommand {
     this.log('🔍 Running SonarQube analysis...')
 
     try {
+      // Delete any existing markdown file to ensure fresh data
+      const markdownFile = `.sonar-issues-${this.prNumber}.md`
+      if (fs.existsSync(markdownFile)) {
+        fs.unlinkSync(markdownFile)
+        this.log(`🗑️ Removed old markdown file: ${markdownFile}`)
+      }
+
       // Use the bundled sonar-check.js from the same directory
       const sonarCheckPath = path.join(__dirname, 'sonar-check.js')
       let stdout, stderr
