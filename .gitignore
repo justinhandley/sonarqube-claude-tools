@@ -75,6 +75,10 @@ jspm_packages/
 # TernJS port file
 .tern-port
 
+# SonarQube temporary files
+.sonar-*
+.sonarqube/
+
 # OS generated files
 .DS_Store
 .DS_Store?

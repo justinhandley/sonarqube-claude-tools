@@ -1,11 +1,12 @@
 {
   "name": "sonarqube-claude-tools",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Claude Code slash commands for automated SonarQube analysis and issue fixing",
   "main": "index.js",
   "bin": {
     "sonar-fix": "./bin/sonar-fix.js",
-    "sonar-check": "./bin/sonar-check.js"
+    "sonar-check": "./bin/sonar-check.js",
+    "sonar-setup": "./bin/sonar-setup.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -31,10 +32,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/sonarqube-claude-tools.git"
+    "url": "https://github.com/justinhandley/sonarqube-claude-tools.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/sonarqube-claude-tools/issues"
+    "url": "https://github.com/justinhandley/sonarqube-claude-tools/issues"
   },
-  "homepage": "https://github.com/your-username/sonarqube-claude-tools#readme"
+  "homepage": "https://github.com/justinhandley/sonarqube-claude-tools#readme"
 }

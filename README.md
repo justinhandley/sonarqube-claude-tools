@@ -15,6 +15,16 @@ This package provides two powerful command-line tools designed to work seamlessl
 npm install -g sonarqube-claude-tools
 ```
 
+## Setup for Claude Code
+
+After installation, run the setup command to install slash commands:
+
+```bash
+sonar-setup
+```
+
+This automatically copies the slash command files to `~/.claude/commands/` so you can use `/sonar-fix` and `/sonar-check` in Claude Code.
+
 ## Quick Start
 
 1. **Set environment variables:**
