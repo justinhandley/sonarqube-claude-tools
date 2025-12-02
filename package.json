@@ -1,6 +1,6 @@
 {
   "name": "sonarqube-claude-tools",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Claude Code slash commands for automated SonarQube analysis and issue fixing",
   "main": "index.js",
   "bin": {
@@ -11,12 +11,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "sonarqube", 
-    "claude-code", 
-    "code-quality", 
-    "static-analysis", 
-    "automation", 
+  "keywords":  [
+    "sonarqube",
+    "claude-code",
+    "code-quality",
+    "static-analysis",
+    "automation",
     "slash-commands",
     "ci-cd"
   ],
