@@ -110,33 +110,54 @@ class SonarFixCommand {
   }
 
   async waitForSonarCloud() {
-    this.log('⏳ Waiting for SonarCloud analysis to complete...')
+    this.log('🔍 Checking if SonarCloud analysis exists...')
 
-    return new Promise(resolve => {
-      const checkInterval = setInterval(async () => {
-        try {
-          const { stdout } = await execPromise(`gh pr checks ${this.prNumber} --json name,state`)
-          const checks = JSON.parse(stdout)
+    try {
+      // Try to run sonar-check immediately to see if results exist
+      const sonarCheckPath = path.join(__dirname, 'sonar-check.js')
+      const { stdout, stderr } = await execPromise(
+        `node ${sonarCheckPath} ${this.prNumber} --json`,
+        { timeout: 30000 } // 30 second timeout for direct check
+      )
 
-          const sonarCheck = checks.find(c => c.name === 'SonarCloud Code Analysis')
+      // If we get here, analysis exists
+      this.log('✅ SonarCloud analysis found')
+      return true
+    } catch (error) {
+      // If 404 or analysis not found, wait for GitHub checks
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        this.log('⏳ SonarCloud analysis not found, waiting for completion...')
+        
+        return new Promise(resolve => {
+          const checkInterval = setInterval(async () => {
+            try {
+              const { stdout } = await execPromise(`gh pr checks ${this.prNumber} --json name,state`)
+              const checks = JSON.parse(stdout)
 
-          if (sonarCheck && (sonarCheck.state === 'success' || sonarCheck.state === 'failure')) {
+              const sonarCheck = checks.find(c => c.name === 'SonarCloud Code Analysis')
+
+              if (sonarCheck && (sonarCheck.state === 'success' || sonarCheck.state === 'failure')) {
+                clearInterval(checkInterval)
+                this.log(`✅ SonarCloud analysis complete: ${sonarCheck.state}`)
+                resolve(sonarCheck.state === 'success')
+              }
+            } catch (error) {
+              this.log(`Error checking PR status: ${error.message}`, 'error')
+            }
+          }, 15000) // Check every 15 seconds
+
+          // Timeout after 8 minutes
+          setTimeout(() => {
             clearInterval(checkInterval)
-            this.log(`✅ SonarCloud analysis complete: ${sonarCheck.state}`)
-            resolve(sonarCheck.state === 'success')
-          }
-        } catch (error) {
-          this.log(`Error checking PR status: ${error.message}`, 'error')
-        }
-      }, 10000) // Check every 10 seconds
-
-      // Timeout after 10 minutes
-      setTimeout(() => {
-        clearInterval(checkInterval)
-        this.log('⏱️ Timeout waiting for SonarCloud', 'warn')
-        resolve(false)
-      }, 600000)
-    })
+            this.log('⏱️ Timeout waiting for SonarCloud', 'warn')
+            resolve(false)
+          }, 480000)
+        })
+      } else {
+        this.log(`Error checking SonarCloud: ${error.message}`, 'error')
+        return false
+      }
+    }
   }
 
   async runSonarQubeCheck() {
