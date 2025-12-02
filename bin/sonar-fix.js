@@ -166,9 +166,19 @@ class SonarFixCommand {
     try {
       // Use the bundled sonar-check.js from the same directory
       const sonarCheckPath = path.join(__dirname, 'sonar-check.js')
-      const { stdout, stderr } = await execPromise(
-        `node ${sonarCheckPath} ${this.prNumber} --markdown -o .sonar-issues-${this.prNumber}.md`,
-      )
+      let stdout, stderr
+      
+      try {
+        const result = await execPromise(
+          `node ${sonarCheckPath} ${this.prNumber} --markdown -o .sonar-issues-${this.prNumber}.md`,
+        )
+        stdout = result.stdout
+        stderr = result.stderr
+      } catch (execError) {
+        // Capture output even if command exits with error code
+        stdout = execError.stdout || ''
+        stderr = execError.stderr || ''
+      }
 
       // Parse the output to get issue count from markdown format
       const issueMatch = stdout.match(/Issues to Fix \((\d+) total\)/)
@@ -179,15 +189,10 @@ class SonarFixCommand {
       }
 
       this.log(`📊 Found ${issueCount} issues`)
+      // Always fix issues if any exist, regardless of quality gate status
       return { success: issueCount === 0, issueCount, output: stdout }
     } catch (error) {
-      // Check if it's just a quality gate failure (exit code 1)
-      if (error.code === 1 && error.stdout) {
-        const issueMatch = error.stdout.match(/Issues to Fix \((\d+) total\)/)
-        const issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
-        this.log(`📊 Found ${issueCount} issues`)
-        return { success: false, issueCount, output: error.stdout }
-      }
+      this.log(`Error running SonarQube check: ${error.message}`, 'error')
       throw error
     }
   }
