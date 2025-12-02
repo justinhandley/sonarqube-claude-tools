@@ -170,8 +170,8 @@ class SonarFixCommand {
         `node ${sonarCheckPath} ${this.prNumber} --markdown -o .sonar-issues-${this.prNumber}.md`,
       )
 
-      // Parse the output to get issue count
-      const issueMatch = stdout.match(/Issues Found \((\d+)/)
+      // Parse the output to get issue count from markdown format
+      const issueMatch = stdout.match(/Issues to Fix \((\d+) total\)/)
       const issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
 
       if (stderr && !stderr.includes('Quality gate failed')) {
@@ -183,7 +183,7 @@ class SonarFixCommand {
     } catch (error) {
       // Check if it's just a quality gate failure (exit code 1)
       if (error.code === 1 && error.stdout) {
-        const issueMatch = error.stdout.match(/Issues Found \((\d+)/)
+        const issueMatch = error.stdout.match(/Issues to Fix \((\d+) total\)/)
         const issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
         this.log(`📊 Found ${issueCount} issues`)
         return { success: false, issueCount, output: error.stdout }
