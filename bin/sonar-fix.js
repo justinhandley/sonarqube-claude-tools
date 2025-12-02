@@ -210,10 +210,14 @@ class SonarFixCommand {
         )
         stdout = result.stdout
         stderr = result.stderr
+        this.log(`📡 SonarCheck stdout: ${stdout.substring(0, 200)}...`)
+        if (stderr) this.log(`📡 SonarCheck stderr: ${stderr.substring(0, 200)}...`)
       } catch (execError) {
         // Capture output even if command exits with error code
         stdout = execError.stdout || ''
         stderr = execError.stderr || ''
+        this.log(`📡 SonarCheck stdout (error): ${stdout.substring(0, 200)}...`)
+        if (stderr) this.log(`📡 SonarCheck stderr (error): ${stderr.substring(0, 200)}...`)
       }
 
       // Read the markdown file directly to get accurate issue count
