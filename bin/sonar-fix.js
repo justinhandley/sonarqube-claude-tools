@@ -184,6 +184,11 @@ class SonarFixCommand {
       const issueMatch = stdout.match(/Issues to Fix \((\d+) total\)/)
       const issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
 
+      // Debug logging
+      this.log(`Debug - stdout length: ${stdout.length}`, 'info')
+      this.log(`Debug - issueMatch: ${JSON.stringify(issueMatch)}`, 'info')
+      this.log(`Debug - first 500 chars of stdout: ${stdout.substring(0, 500)}`, 'info')
+
       if (stderr && !stderr.includes('Quality gate failed')) {
         this.log(`Warning: ${stderr}`, 'warn')
       }
