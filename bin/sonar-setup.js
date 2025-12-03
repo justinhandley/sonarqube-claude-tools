@@ -45,8 +45,9 @@ function setupSlashCommands() {
         }
 
         try {
+            const isUpdate = fs.existsSync(destPath);
             fs.copyFileSync(sourcePath, destPath);
-            console.log(`✅ Copied: ${file}`);
+            console.log(`✅ ${isUpdate ? 'Updated' : 'Copied'}: ${file}`);
             copiedCount++;
         } catch (error) {
             console.error(`❌ Error copying ${file}: ${error.message}`);
@@ -59,10 +60,12 @@ function setupSlashCommands() {
     }
 
     console.log(`\n🎉 Successfully installed ${copiedCount} slash command${copiedCount === 1 ? '' : 's'}!`);
+    console.log(`   Location: ${claudeConfigDir}`);
     console.log('\n📋 Available commands in Claude Code:');
     console.log('   /sonar-check [PR#]  - Check SonarQube issues');
     console.log('   /sonar-fix [PR#]    - Auto-fix SonarQube issues');
-    
+
+    console.log('\n💡 Note: Running sonar-setup again will overwrite these files with the latest version.');
     console.log('\n🔧 Next steps:');
     console.log('   1. Set environment variables in your project:');
     console.log('      SONARQUBE_URL=https://sonarcloud.io');

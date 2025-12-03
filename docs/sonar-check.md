@@ -2,7 +2,7 @@ Run the sonar-check command to analyze SonarQube issues for a project or pull re
 
 Usage: /sonar-check [PR_NUMBER] [OPTIONS]
 
-This command runs `sonar-check [PR_NUMBER] [OPTIONS]` which:
+This command runs `npx -p sonarqube-claude-tools sonar-check [PR_NUMBER] [OPTIONS]` which:
 - Fetches SonarQube analysis results
 - Displays quality gate status and metrics
 - Lists issues by severity and type

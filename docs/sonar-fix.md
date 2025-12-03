@@ -2,7 +2,7 @@ Run the sonar-fix command to automatically detect and fix SonarQube issues in a 
 
 Usage: /sonar-fix [PR_NUMBER] [OPTIONS]
 
-This command runs `sonar-fix [PR_NUMBER] [OPTIONS]` which:
+This command runs `npx -p sonarqube-claude-tools sonar-fix [PR_NUMBER] [OPTIONS]` which:
 - Analyzes SonarQube issues for the specified PR
 - Creates fix prompts for Claude to resolve issues
 - Automates the commit/push cycle until issues are resolved

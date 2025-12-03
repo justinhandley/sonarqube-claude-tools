@@ -115,9 +115,9 @@ class SonarQubeClient {
       let url;
       
       if (this.pullRequest) {
-        // For PRs, get ALL issues with full details including textRange for line numbers
+        // For PRs, get only NEW issues introduced in the PR (same as GitHub integration)
         // Exclude closed issues (including those from excluded files marked as REMOVED)
-        url = `/issues/search?componentKeys=${encodeURIComponent(this.projectKey)}&pullRequest=${encodeURIComponent(this.pullRequest)}&statuses=OPEN,CONFIRMED,REOPENED&ps=${pageSize}&additionalFields=_all`;
+        url = `/issues/search?componentKeys=${encodeURIComponent(this.projectKey)}&pullRequest=${encodeURIComponent(this.pullRequest)}&inNewCodePeriod=true&statuses=OPEN,CONFIRMED,REOPENED&ps=${pageSize}&additionalFields=_all`;
       } else {
         const typesParam = types.join(',');
         const severitiesParam = severities.join(',');
