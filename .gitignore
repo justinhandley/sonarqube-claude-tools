@@ -78,6 +78,7 @@ jspm_packages/
 # SonarQube temporary files
 .sonar-*
 .sonarqube/
+.temp-review/
 
 # OS generated files
 .DS_Store

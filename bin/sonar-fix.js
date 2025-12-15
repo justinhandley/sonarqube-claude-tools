@@ -7,6 +7,8 @@ const path = require('path')
 const util = require('util')
 const execPromise = util.promisify(exec)
 
+const TEMP_DIR = '.temp-review'
+
 /**
  * Claude Slash Command: /sonar-fix
  *
@@ -37,11 +39,23 @@ class SonarFixCommand {
     this.verbose = options.verbose || false
     this.iteration = 0
     this.fixedIssues = []
-    this.statusFile = `.sonar-fix-${prNumber}.json`
-    this.logFile = `.sonar-fix-${prNumber}.log`
+    this.tempDir = TEMP_DIR
+    this.statusFile = path.join(TEMP_DIR, `sonar-fix-${prNumber}.json`)
+    this.logFile = path.join(TEMP_DIR, `sonar-fix-${prNumber}.log`)
+    this.issuesFile = path.join(TEMP_DIR, `sonar-issues-${prNumber}.md`)
+    this.promptFile = path.join(TEMP_DIR, `claude-fix-prompt-${prNumber}.md`)
+
+    // Ensure temp directory exists
+    this.ensureTempDir()
 
     // Clean up any previous runs
     this.cleanup()
+  }
+
+  ensureTempDir() {
+    if (!fs.existsSync(this.tempDir)) {
+      fs.mkdirSync(this.tempDir, { recursive: true })
+    }
   }
 
   log(message, level = 'info') {
@@ -67,12 +81,27 @@ class SonarFixCommand {
   }
 
   cleanup() {
-    ;[
+    // New temp directory files
+    const tempFiles = [
       this.statusFile,
       this.logFile,
+      this.issuesFile,
+      this.promptFile,
+      path.join(TEMP_DIR, `pr-${this.prNumber}-status.json`),
+      path.join(TEMP_DIR, `pr-monitor-${this.prNumber}.pid`),
+    ]
+
+    // Legacy files (for migration cleanup)
+    const legacyFiles = [
+      `.sonar-fix-${this.prNumber}.json`,
+      `.sonar-fix-${this.prNumber}.log`,
+      `.sonar-issues-${this.prNumber}.md`,
+      `.claude-fix-prompt-${this.prNumber}.md`,
       `.pr-${this.prNumber}-status.json`,
       `.pr-monitor-${this.prNumber}.pid`,
-    ].forEach(file => {
+    ]
+
+    ;[...tempFiles, ...legacyFiles].forEach(file => {
       if (fs.existsSync(file)) {
         fs.unlinkSync(file)
       }
@@ -170,7 +199,7 @@ class SonarFixCommand {
       
       try {
         const result = await execPromise(
-          `node ${sonarCheckPath} ${this.prNumber} --markdown -o .sonar-issues-${this.prNumber}.md`,
+          `node ${sonarCheckPath} ${this.prNumber} --markdown -o ${this.issuesFile}`,
         )
         stdout = result.stdout
         stderr = result.stderr
@@ -181,7 +210,7 @@ class SonarFixCommand {
       }
 
       // Read the markdown file directly to get accurate issue count
-      const markdownFile = `.sonar-issues-${this.prNumber}.md`
+      const markdownFile = this.issuesFile
       let issueCount = 0
       
       if (fs.existsSync(markdownFile)) {
@@ -222,14 +251,13 @@ class SonarFixCommand {
   }
 
   async generateFixPrompt(issueCount) {
-    const markdownFile = `.sonar-issues-${this.prNumber}.md`
     let issuesContent = ''
 
-    console.log(`\n📋 LOOKING FOR ISSUES FILE: ${markdownFile}`)
-    console.log(`   File exists: ${fs.existsSync(markdownFile)}`)
-    
-    if (fs.existsSync(markdownFile)) {
-      issuesContent = fs.readFileSync(markdownFile, 'utf8')
+    console.log(`\n📋 LOOKING FOR ISSUES FILE: ${this.issuesFile}`)
+    console.log(`   File exists: ${fs.existsSync(this.issuesFile)}`)
+
+    if (fs.existsSync(this.issuesFile)) {
+      issuesContent = fs.readFileSync(this.issuesFile, 'utf8')
       console.log(`   File size: ${issuesContent.length} chars`)
       console.log(`   Contains issues: ${issuesContent.includes('Issues to Fix')}`)
     } else {
@@ -277,10 +305,9 @@ After fixing the issues, I will:
 Please proceed with fixing the issues above.
 `
 
-    const promptFile = `.claude-fix-prompt-${this.prNumber}.md`
-    fs.writeFileSync(promptFile, prompt)
+    fs.writeFileSync(this.promptFile, prompt)
 
-    this.log('📝 Fix prompt generated and saved to ' + promptFile)
+    this.log('📝 Fix prompt generated and saved to ' + this.promptFile)
     return prompt
   }
 
