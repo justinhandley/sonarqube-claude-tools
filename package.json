@@ -1,24 +1,30 @@
 {
-  "name": "sonarqube-claude-tools",
-  "version": "1.6.6",
-  "description": "Claude Code slash commands for automated SonarQube analysis and issue fixing",
+  "name": "sonarqube-cli-tools",
+  "version": "1.8.0",
+  "description": "Automated SonarQube PR fix loop for Claude Code, Gemini CLI, and Codex CLI — iterative fix, commit, and re-check until passing",
   "main": "index.js",
   "bin": {
-    "sonar-fix": "./bin/sonar-fix.js",
-    "sonar-check": "./bin/sonar-check.js",
-    "sonar-setup": "./bin/sonar-setup.js"
+    "sonar-fix": "bin/sonar-fix.js",
+    "sonar-check": "bin/sonar-check.js",
+    "sonar-setup": "bin/sonar-setup.js",
+    "sonar-init": "bin/sonar-init.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords":  [
+  "keywords": [
     "sonarqube",
+    "sonarcloud",
     "claude-code",
+    "gemini-cli",
+    "codex-cli",
+    "openai-codex",
     "code-quality",
     "static-analysis",
     "automation",
     "slash-commands",
-    "ci-cd"
+    "mcp",
+    "ai-coding"
   ],
   "author": "Justin Handley",
   "license": "MIT",
@@ -32,10 +38,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/justinhandley/sonarqube-claude-tools.git"
+    "url": "git+https://github.com/justinhandley/sonarqube-cli-tools.git"
   },
   "bugs": {
-    "url": "https://github.com/justinhandley/sonarqube-claude-tools/issues"
+    "url": "https://github.com/justinhandley/sonarqube-cli-tools/issues"
   },
-  "homepage": "https://github.com/justinhandley/sonarqube-claude-tools#readme"
+  "homepage": "https://github.com/justinhandley/sonarqube-cli-tools#readme"
 }

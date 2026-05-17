@@ -1,10 +1,15 @@
+---
+name: sonar-fix
+description: Automatically detect and fix SonarQube issues in a pull request using an iterative analysis and fix loop. Use when the user asks to fix Sonar issues, resolve SonarQube findings, or clean up a PR's quality gate failures.
+---
+
 Run the sonar-fix command to automatically detect and fix SonarQube issues in a pull request.
 
 Usage: /sonar-fix [PR_NUMBER] [OPTIONS]
 
 This command runs `npx -p sonarqube-cli-tools sonar-fix [PR_NUMBER] [OPTIONS]` which:
 - Analyzes SonarQube issues for the specified PR
-- Creates fix prompts for Claude to resolve issues
+- Creates fix prompts to resolve issues
 - Automates the commit/push cycle until issues are resolved
 
 Examples:
@@ -14,5 +19,5 @@ Examples:
 
 Environment variables required (set in .env):
 - SONARQUBE_URL
-- SONARQUBE_TOKEN  
+- SONARQUBE_TOKEN
 - SONARQUBE_PROJECT_KEY

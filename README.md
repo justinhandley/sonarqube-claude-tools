@@ -1,280 +1,148 @@
-# SonarQube Claude Tools
+# sonarqube-cli-tools
 
-Claude Code slash commands for automated SonarQube analysis and issue fixing.
+The missing link between SonarQube and your AI coding assistant.
 
-## Overview
+For **browsing** SonarQube data — quality gates, metrics, security hotspots — use the [official SonarQube MCP server](https://docs.sonarsource.com/agent-centric-development-cycle/developer-tools/mcp-server/setup/sonarqube-cloud-hosted). Your AI can answer questions about your project directly.
 
-This package provides two powerful command-line tools designed to work seamlessly with Claude Code:
+For **fixing** pull request issues, use `/sonar-fix`. It runs an iterative loop that MCP alone can't do: fetch issues → prompt AI to fix → commit → wait for re-analysis → repeat until passing.
 
-- **`sonar-check`** - Standalone SonarQube analysis with multiple output formats
-- **`sonar-fix`** - Automated SonarQube issue fixing loop for pull requests
+---
 
-## Installation
+## Quick start
+
+### 1. Install globally (once)
 
 ```bash
-npm install -g sonarqube-claude-tools
+npx sonar-setup
 ```
 
-## Setup for Claude Code
+Prompts which AI tools to install `/sonar-fix` into:
 
-After installation, run the setup command to install slash commands:
+| Tool | Location |
+|------|----------|
+| Claude Code | `~/.claude/commands/sonar-fix.md` |
+| Gemini CLI | `~/.gemini/commands/sonar-fix.md` |
+| Codex CLI | `~/.agents/skills/sonar-fix/SKILL.md` |
 
-```bash
-sonar-setup
-```
+### 2. Configure each project
 
-This automatically copies the slash command files to `~/.claude/commands/` so you can use `/sonar-fix` and `/sonar-check` in Claude Code.
-
-## Quick Start
-
-1. **Set environment variables:**
-```bash
-export SONARQUBE_URL=https://sonarcloud.io
-export SONARQUBE_TOKEN=your_token_here
-export SONARQUBE_PROJECT_KEY=your_project_key
-```
-
-2. **Check SonarQube issues:**
-```bash
-sonar-check 172  # Check PR #172
-sonar-check      # Check overall project
-```
-
-3. **Auto-fix issues with Claude:**
-```bash
-sonar-fix 172    # Start automated fix loop for PR #172
-```
-
-## Commands
-
-### `sonar-check`
-
-Analyzes your project using the SonarQube API and displays results.
+Add a `.env` to your project root:
 
 ```bash
-# Basic usage
-sonar-check                    # Check overall project
-sonar-check 165                # Check specific PR
-sonar-check --pr 165           # Check specific PR (alternative syntax)
-
-# Output formats
-sonar-check --json             # JSON output
-sonar-check --markdown         # Markdown with checkboxes
-sonar-check --markdown -o issues.md  # Save to file
-
-# Help
-sonar-check --help
-```
-
-**Features:**
-- Zero dependencies (uses only Node.js built-ins)
-- Multiple output formats (text, JSON, markdown)
-- Pull request analysis support
-- Comprehensive issue reporting
-- CI/CD ready with proper exit codes
-
-### `sonar-fix`
-
-Automated SonarQube issue fixing loop designed for Claude Code workflows.
-
-```bash
-# Basic usage
-sonar-fix 172                    # Fix issues for PR #172
-
-# Options
-sonar-fix 172 --max-iterations 5     # Limit fix cycles
-sonar-fix 172 --auto-commit          # Auto-commit without waiting
-sonar-fix 172 --verbose              # Detailed logging
-
-# Help
-sonar-fix --help
-```
-
-**Features:**
-- 🔄 Automated fix loop until all issues resolved
-- 📊 Smart issue prioritization (BLOCKER → CRITICAL → MAJOR → MINOR)
-- 🤖 Claude Code integration with generated fix prompts
-- 📦 Auto-commit and push capabilities
-- 📈 Progress tracking across iterations
-- ⏱️ Timeout protection and error handling
-
-## Configuration
-
-### Environment Variables
-
-Required for both commands:
-
-```bash
-SONARQUBE_URL          # Your SonarQube server URL
-SONARQUBE_TOKEN        # Authentication token  
-SONARQUBE_PROJECT_KEY  # Project key to analyze
-```
-
-### .env File Support
-
-You can also create a `.env` file in your project root:
-
-```bash
-# .env
 SONARQUBE_URL=https://sonarcloud.io
 SONARQUBE_TOKEN=your_token_here
 SONARQUBE_PROJECT_KEY=your_project_key
 ```
 
-## Claude Code Integration
-
-These tools are designed specifically for Claude Code workflows:
-
-### Using as Slash Commands
-
-With Claude Code, you can use these as slash commands by invoking them through the Task tool:
+### 3. Fix a PR
 
 ```
-/sonar-fix 172
+/sonar-fix 42
 ```
 
-Claude will:
-1. Run the fix loop
-2. Receive detailed fix prompts
-3. Make code changes to resolve issues
-4. Commit and push changes automatically
-5. Repeat until all issues are resolved
+---
 
-### Workflow Example
+## How `/sonar-fix` works
+
+1. Waits for SonarCloud analysis to complete on the PR (up to 8 minutes)
+2. Fetches issues as a structured markdown prompt, ordered by severity: BLOCKER → CRITICAL → MAJOR → MINOR → INFO
+3. AI reads the issues and applies fixes
+4. Commits and pushes
+5. Waits for the next SonarCloud analysis
+6. Repeats until the quality gate passes or `--max-iterations` is reached
+
+**Requirements:** GitHub CLI (`gh`) must be installed and authenticated.
+
+### Options
 
 ```bash
-# 1. Start the fix loop
 sonar-fix 172
-
-# 2. Claude receives a prompt like:
-# 🔧 SonarQube Fix Task - Iteration 1
-# Issues Found: 11
-# [Detailed issue list with priorities]
-
-# 3. Claude fixes the issues
-
-# 4. Script auto-commits and pushes
-
-# 5. Loop continues until clean
+sonar-fix 172 --max-iterations 5   # default: 10
+sonar-fix 172 --auto-commit        # commit without pausing
+sonar-fix 172 --verbose            # detailed per-step logs
+sonar-fix --help
 ```
 
-## CI/CD Integration
+Logs and temp files are written to `.temp-review/` in the project root.
 
-### GitHub Actions
+---
 
-```yaml
-- name: Check SonarQube Quality Gate
-  env:
-    SONARQUBE_URL: ${{ secrets.SONARQUBE_URL }}
-    SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-    SONARQUBE_PROJECT_KEY: ${{ secrets.SONARQUBE_PROJECT_KEY }}
-  run: npx sonarqube-claude-tools sonar-check
+## Per-project MCP setup (`sonar-init`)
+
+The [official SonarQube MCP server](https://docs.sonarsource.com/agent-centric-development-cycle/developer-tools/mcp-server/setup/sonarqube-cloud-hosted) gives your AI native read access to your project's issues, quality gates, metrics, and security hotspots — no slash commands needed for exploration.
+
+`sonar-init` makes per-project MCP setup automatic. Run it once per project from the repo root:
+
+```bash
+cd my-project
+npx sonar-init
 ```
 
-### GitLab CI
+**What it does:**
 
-```yaml
-sonarqube-check:
-  script:
-    - npx sonarqube-claude-tools sonar-check
-  variables:
-    SONARQUBE_URL: ${SONARQUBE_URL}
-    SONARQUBE_TOKEN: ${SONARQUBE_TOKEN}
-    SONARQUBE_PROJECT_KEY: ${SONARQUBE_PROJECT_KEY}
-```
+1. Reads your existing `.env` and prefills any values already set
+2. Prompts for anything missing (URL, token, project key)
+3. Auto-fetches your organisation key from the SonarCloud API
+4. Writes all four vars to `.env`
+5. Configures the SonarQube MCP server for whichever AI tools you choose
 
-## Output Examples
-
-### Text Output (default)
+**Each project gets a unique MCP server name** derived from the directory, so there are no collisions across projects in your AI tools:
 
 ```
-=== SonarQube Analysis Report ===
-
-Project: my-project
-Pull Request: #172
-Quality Gate: ERROR
-
-Metrics:
-  New Bugs: 2
-  New Code Smells: 15
-  New Vulnerabilities: 0
-
-Issues Found (17):
-
-  CRITICAL CODE_SMELLs (5):
-    1. src/components/Dashboard.tsx:215
-       Refactor this function to reduce its Cognitive Complexity
-    ...
-
-⚠️  Quality gate failed. Please review and fix the issues above.
+my-project  →  my-project-sonar
+mi-core     →  mi-core-sonar
+qalatra     →  qalatra-sonar
 ```
 
-### Markdown Output
+**Config files written:**
 
-```markdown
-# SonarQube Analysis Report
+| Tool | File | Scope |
+|------|------|-------|
+| Claude Code | `.claude/settings.json` | Project |
+| Cursor | `.cursor/mcp.json` | Project |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` | Global |
 
-**Project:** my-project
-**Pull Request:** #172  
-**Quality Gate:** ❌ ERROR
+Once configured, just ask your AI directly:
+> "What are the current SonarQube issues in this project?"
+> "Is the quality gate passing?"
+> "Show me the security hotspots"
 
-## Issues to Fix (17 total)
+---
 
-### 🔴 CRITICAL CODE_SMELLs (5)
+## Configuration
 
-#### `src/components/Dashboard.tsx`
+All commands read from environment variables or a `.env` file in the working directory.
 
-- [ ] **Line 215** - Refactor this function to reduce its Cognitive Complexity
-  - File: `src/components/Dashboard.tsx:215`
-  - Rule: `javascript:S3776`
-```
+| Variable | Description |
+|----------|-------------|
+| `SONARQUBE_URL` | Base URL — `https://sonarcloud.io` or your self-hosted instance |
+| `SONARQUBE_TOKEN` | User or project analysis token |
+| `SONARQUBE_PROJECT_KEY` | Project key as shown in SonarQube |
+| `SONARQUBE_ORG` | Organisation key — required for MCP, auto-fetched by `sonar-init` |
+
+---
 
 ## Troubleshooting
 
-### Common Issues
+| Symptom | Fix |
+|---------|-----|
+| `Missing required environment variables` | Add `SONARQUBE_URL`, `SONARQUBE_TOKEN`, `SONARQUBE_PROJECT_KEY` to `.env` |
+| `PR not found` | Verify the PR number and that `gh` is authenticated |
+| `Not in a git repository` | Run from the project root |
+| `SonarCloud timeout` | Analysis may not have completed yet — `sonar-fix` waits up to 8 minutes |
+| Issue count doesn't match UI | Ensure `SONARQUBE_PROJECT_KEY` is the exact key from SonarQube, not the display name |
 
-| Issue | Solution |
-|-------|----------|
-| "Missing required environment variables" | Set SONARQUBE_URL, SONARQUBE_TOKEN, SONARQUBE_PROJECT_KEY |
-| "PR not found" | Verify PR number and GitHub CLI access |
-| "Not in a git repository" | Run from project root directory |
-| "SonarCloud timeout" | Check PR status manually, may need to wait longer |
+Use `--verbose` for detailed logs. Logs are also written to `.temp-review/sonar-fix-<pr>.log`.
 
-### Debug Mode
-
-Use `--verbose` flag for detailed logging:
-
-```bash
-sonar-fix 172 --verbose
-```
-
-Logs are saved to `.sonar-fix-<pr>.log` for debugging.
+---
 
 ## Requirements
 
 - Node.js 14+
 - Git repository
-- GitHub CLI (`gh`) for PR operations
-- SonarQube/SonarCloud project setup
+- SonarQube or SonarCloud project with an analysis token
+- GitHub CLI (`gh`) — required for PR operations
 
 ## License
 
 MIT
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## Links
-
-- [SonarQube Metric Definitions](https://docs.sonarqube.org/latest/user-guide/metric-definitions/)
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
-- [GitHub CLI Documentation](https://cli.github.com/)
-
----
-
-**Made for Claude Code workflows** 🤖

@@ -194,10 +194,10 @@ class SonarFixCommand {
 
     try {
       // Delete any existing markdown file to ensure fresh data
-      const markdownFile = `.sonar-issues-${this.prNumber}.md`
-      if (fs.existsSync(markdownFile)) {
-        fs.unlinkSync(markdownFile)
-        this.log(`🗑️ Removed old markdown file: ${markdownFile}`)
+      const legacyFile = `.sonar-issues-${this.prNumber}.md`
+      if (fs.existsSync(legacyFile)) {
+        fs.unlinkSync(legacyFile)
+        this.log(`🗑️ Removed old markdown file: ${legacyFile}`)
       }
 
       // Use the bundled sonar-check.js from the same directory
@@ -221,11 +221,10 @@ class SonarFixCommand {
       }
 
       // Read the markdown file directly to get accurate issue count
-      const markdownFile = this.issuesFile
       let issueCount = 0
-      
-      if (fs.existsSync(markdownFile)) {
-        const fileContent = fs.readFileSync(markdownFile, 'utf8')
+
+      if (fs.existsSync(this.issuesFile)) {
+        const fileContent = fs.readFileSync(this.issuesFile, 'utf8')
         const issueMatch = fileContent.match(/Issues to Fix \((\d+) total\)/)
         issueCount = issueMatch ? parseInt(issueMatch[1]) : 0
         console.log(`\n🔍 SONAR ANALYSIS COMPLETE`)
