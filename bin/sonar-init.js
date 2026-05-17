@@ -128,25 +128,12 @@ async function sonarInit() {
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-  const defaultUrl = existing.SONARQUBE_URL || 'https://sonarcloud.io';
-  const sonarUrl = await ask(rl, `  SonarQube URL [${defaultUrl}]: `) || defaultUrl;
-
-  let token;
-  if (existing.SONARQUBE_TOKEN) {
-    const input = await ask(rl, '  Token [press Enter to keep existing]: ');
-    token = input || existing.SONARQUBE_TOKEN;
-  } else {
-    token = await ask(rl, '  Token: ');
-  }
-
-  const defaultKey = existing.SONARQUBE_PROJECT_KEY || '';
-  const projectKey = await ask(rl, `  Project key${defaultKey ? ` [${defaultKey}]` : ''}: `) || defaultKey;
+  const sonarUrl = existing.SONARQUBE_URL || await ask(rl, '  SonarQube URL [https://sonarcloud.io]: ') || 'https://sonarcloud.io';
+  const token    = existing.SONARQUBE_TOKEN    || await ask(rl, '  Token: ');
+  const projectKey = existing.SONARQUBE_PROJECT_KEY || await ask(rl, '  Project key: ');
 
   let org = existing.SONARQUBE_ORG;
-  if (org) {
-    const input = await ask(rl, `  Organisation [${org}]: `);
-    if (input) org = input;
-  } else {
+  if (!org) {
     process.stdout.write('  Organisation: ⚙️  fetching from API...');
     try {
       const fetched = await fetchOrg(sonarUrl, token, projectKey);

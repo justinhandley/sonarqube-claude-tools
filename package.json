@@ -1,6 +1,6 @@
 {
   "name": "sonarqube-cli-tools",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Automated SonarQube PR fix loop for Claude Code, Gemini CLI, and Codex CLI — iterative fix, commit, and re-check until passing",
   "main": "index.js",
   "bin": {
