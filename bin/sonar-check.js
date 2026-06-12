@@ -121,7 +121,7 @@ class SonarQubeClient {
       } else {
         const typesParam = types.join(',');
         const severitiesParam = severities.join(',');
-        url = `/issues/search?componentKeys=${encodeURIComponent(this.projectKey)}&types=${typesParam}&severities=${severitiesParam}&ps=${pageSize}&additionalFields=_all`;
+        url = `/issues/search?componentKeys=${encodeURIComponent(this.projectKey)}&types=${typesParam}&severities=${severitiesParam}&statuses=OPEN,CONFIRMED,REOPENED&ps=${pageSize}&additionalFields=_all`;
       }
       
       const result = await this.makeRequest(url);
